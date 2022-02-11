@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from time import sleep
+from fractions import Fraction
 from orbit import ISS
 import csv
 from picamera import PiCamera
@@ -30,10 +31,7 @@ sleep_time = sleep_time_day
 
 # Defining camera settings
 cam = PiCamera()
-cam.resolution = (1296,972)
-# -------- Exposure
- 
-
+cam.resolution = (1296,972) 
 
 
 def check_img(image):
@@ -87,7 +85,7 @@ def my_capture(camera, image):
     camera.exif_tags['GPS.GPSLongitudeRef'] = "W" if west else "E"
     camera.capture(image)
 
-while (now_time < start_time + timedelta(minutes=1)):
+while (now_time < start_time + timedelta(minutes=180)):
     sleep(sleep_time)
     img_name = f"img_{img_number}.jpg"
     my_capture(cam, f"{img_folder}/{img_name}")
@@ -95,10 +93,20 @@ while (now_time < start_time + timedelta(minutes=1)):
     print("Picture analyzed")
     
     if img_status == False: # Night time image
-        #os.remove(f"./images/{img_name}")
-        pass
+        #os.remove(f"./images/{img_name}") 
+      #--------------------------------------
+        cam = PiCamera(
+            resolution=(1280, 972),
+            framerate=Fraction(1, 6),
+            sensor_mode=3)
+        cam.shutter_speed = 6000000
+        cam.iso = 800
+        cam.exposure_mode = 'off'
+        cam.capture('dark.jpg')
+       #--------------------------------------      
     elif img_status == True: # Day time image
-        pass
+        cam = PiCamera()
+        cam.resolution = (1296,972) 
 
     with open('data.csv', 'a', newline='') as file:
         image_att = ""
